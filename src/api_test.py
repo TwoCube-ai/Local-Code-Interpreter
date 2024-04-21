@@ -3,12 +3,11 @@ import json
 
 # URL of the Flask API endpoint
 api_url = "http://127.0.0.1:7860/run/predict/"
-api_url = "http://127.0.0.1:8888/run/predict/"  # This version is for docker (port 8888)
+# api_url = "http://127.0.0.1:8888/run/predict/"  # This version is for docker (port 8888)
 #read chat_history.json
-chat_history = json.load(open("chat_history.json", "r"))
 # Data to send to the API
 data = {
-    "data": ["test",chat_history],
+    "data": ["test"],
     "fn_index": 0
 }
 headers = {

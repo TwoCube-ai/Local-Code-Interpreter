@@ -1,3 +1,3 @@
 echo Running Docker Container
-docker run -p 1000:8888 llmgradio:latest
+docker run -p 8888:7860 llmgradio:latest
 ```

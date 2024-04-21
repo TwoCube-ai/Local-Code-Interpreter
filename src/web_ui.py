@@ -38,7 +38,7 @@ def run_gradio():
 
         app.queue()
 
-        def respond(message, chat_history):
+        def respond(message):
             global history
             response = execute_python_code(message)
             add_code_execution_result_to_bot_history(response, history, "123")
@@ -56,7 +56,7 @@ def run_gradio():
         
 
         #call messages event handler
-        msg.submit(respond, [msg, chatbot], [msg, chatbot], api_name="chatbot")
+        msg.submit(respond, [msg], [msg, chatbot], api_name="chatbot")
         load.click(refresh_response, [msg, chatbot], [msg, chatbot, load], api_name="chatbot", every =1)
 
     app.launch()
