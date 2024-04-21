@@ -9,11 +9,12 @@ def initialization(state_dict: Dict) -> None:
         state_dict["bot_backend"] = BotBackend()
         if 'OPENAI_API_KEY' in os.environ:
             del os.environ['OPENAI_API_KEY']
+    global global_history
+    global_history = []
 
 
 def get_bot_backend(state_dict: Dict) -> BotBackend:
     return state_dict["bot_backend"]
-
 
 def switch_to_gpt4(state_dict: Dict, whether_switch: bool) -> None:
     bot_backend = get_bot_backend(state_dict)
@@ -22,14 +23,23 @@ def switch_to_gpt4(state_dict: Dict, whether_switch: bool) -> None:
     else:
         bot_backend.update_gpt_model_choice("GPT-3.5")
 
-
-def add_text(state_dict: Dict, history: List, text: str) -> Tuple[List, Dict]:
-    bot_backend = get_bot_backend(state_dict)
+#open this to API post request
+#it auto updates state
+def add_text(text: str) -> Tuple[List, Dict]:
+    global global_history
+    global global_bot
+    bot_backend = global_bot
     bot_backend.add_text_message(user_text=text)
-
-    history = history + [(text, None)]
-
+    history = global_history
+    history = history + [[text, None]]
+    gr.Button.update(interactive=False)
+    bot()
+    refresh_file_display()
+    global_history = history
     return history, gr.update(value="", interactive=False)
+
+#add methods here for other bot_backend methods
+#open this to API post request
 
 
 def add_file(state_dict: Dict, history: List, files) -> List:
@@ -70,8 +80,11 @@ def undo_upload_file(state_dict: Dict, history: List) -> Tuple[List, Dict]:
             return history, gr.Button.update(interactive=False)
 
 
-def refresh_file_display(state_dict: Dict) -> List[str]:
-    bot_backend = get_bot_backend(state_dict)
+def refresh_file_display() -> List[str]:
+    global global_history
+    history = global_history
+    global global_bot
+    bot_backend = global_bot
     work_dir = bot_backend.jupyter_work_dir
     filenames = os.listdir(work_dir)
     paths = []
@@ -120,14 +133,21 @@ def stop_generating(state_dict: Dict) -> None:
         bot_backend.update_stop_generating_state(stop_generating=True)
 
 
-def bot(state_dict: Dict, history: List) -> List:
-    bot_backend = get_bot_backend(state_dict)
+def bot() -> List:
+    # print(bot)
+    global global_bot
+    bot_backend = global_bot
+    global global_history
+    history = global_history
+
+    # print(history)
+    bot_backend.finish_reason = 'new_input'
 
     while bot_backend.finish_reason in ('new_input', 'function_call'):
-        if history[-1][1]:
-            history.append([None, ""])
-        else:
-            history[-1][1] = ""
+        # if history[-1][1]:
+        #     history.append([None, ""])
+        # else:
+        #     history[-1][1] = ""
 
         try:
             response = chat_completion(bot_backend=bot_backend)
@@ -177,16 +197,27 @@ def bot(state_dict: Dict, history: List) -> List:
     yield history, gr.Button.update(interactive=False, value='⏹️ Stop generating'), gr.Button.update(visible=False)
 
 
-if __name__ == '__main__':
-    config = get_config()
-    with gr.Blocks(theme=gr.themes.Base()) as block:
+def run_flask():
+    from web_api import app
+    app.run(debug=True, port=5000, use_reloader=False)
+
+def run_gradio():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+
+    with gr.Blocks(theme=gr.themes.Base(),analytics_enabled=False) as block:
         """
         Reference: https://www.gradio.app/guides/creating-a-chatbot-fast
         """
         # UI components
+        global state
         state = gr.State(value={"bot_backend": None})
         with gr.Tab("Chat"):
+            global chatbot
+            global chatbot_value
             chatbot = gr.Chatbot([], elem_id="chatbot", label="Local Code Interpreter", height=750)
+            chatbot_value = chatbot.value
             with gr.Row():
                 with gr.Column(scale=0.85):
                     text_box = gr.Textbox(
@@ -215,17 +246,20 @@ if __name__ == '__main__':
             file_output = gr.Files()
 
         # Components function binding
-        txt_msg = text_box.submit(add_text, [state, chatbot, text_box], [chatbot, text_box], queue=False).then(
+        txt_msg = text_box.submit(add_text, [text_box], [chatbot, text_box], queue=False, api_name="add_text").then(
             lambda: gr.Button.update(interactive=False), None, [undo_file_button], queue=False
         ).then(
-            bot, [state, chatbot], [chatbot, stop_generation_button, retry_button]
-        )
-        txt_msg.then(fn=refresh_file_display, inputs=[state], outputs=[file_output])
-        txt_msg.then(lambda: gr.update(interactive=True), None, [text_box], queue=False)
-        txt_msg.then(fn=refresh_token_count, inputs=[state], outputs=[token_monitor])
+            bot, [], [chatbot, stop_generation_button, retry_button]
+        ).then(
+            fn=refresh_file_display, inputs=[], outputs=[file_output]
+        ).then(
+            lambda: gr.update(interactive=True), None, [text_box], queue=False
+        ) .then(
+            fn=refresh_token_count, inputs=[state], outputs=[token_monitor])
+        
 
         retry_button.click(lambda: gr.Button.update(visible=False), None, [retry_button], queue=False).then(
-            bot, [state, chatbot], [chatbot, stop_generation_button, retry_button]
+            bot, [], [chatbot, stop_generation_button, retry_button]
         ).then(
             fn=refresh_file_display, inputs=[state], outputs=[file_output]
         ).then(
@@ -272,8 +306,18 @@ if __name__ == '__main__':
             fn=refresh_token_count,
             inputs=[state], outputs=[token_monitor]
         )
-
         block.load(fn=initialization, inputs=[state])
-
     block.queue()
     block.launch(inbrowser=True)
+
+
+
+if __name__ == '__main__':
+    config = get_config()
+    
+    flask_thread = threading.Thread(target=run_flask)
+    gradio_thread = threading.Thread(target=run_gradio)
+
+    flask_thread.start()
+    gradio_thread.start()
+

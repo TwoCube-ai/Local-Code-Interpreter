@@ -29,8 +29,8 @@ def run_gradio():
     asyncio.set_event_loop(loop)
 
 
-    with gr.Blocks(show_api=True) as app:
-        chatbot = gr.Chatbot(placeholder="Type Python code here...")
+    with gr.Blocks(show_api=True, css="footer {visibility: hidden}") as app:
+        chatbot = gr.Chatbot(placeholder="Type Python code here...", show_label=False)
         
         chatbot.style(height=500) 
         msg = gr.Textbox(visible=False)
