@@ -70,7 +70,7 @@ def add_code_execution_result_to_bot_history(content_to_display, history, unique
     for mark, out_str in content_to_display:
         if mark in ('stdout', 'execute_result_text', 'display_text'):
             text.append(out_str)
-            add_code_cell_output_to_notebook(out_str)
+            # add_code_cell_output_to_notebook(out_str)
         elif mark in ('execute_result_png', 'execute_result_jpeg', 'display_png', 'display_jpeg'):
             if 'png' in mark:
                 images.append(('png', out_str))
@@ -82,7 +82,7 @@ def add_code_execution_result_to_bot_history(content_to_display, history, unique
             # Set output type to error
             text.append(delete_color_control_char(out_str))
             error_occurred = True
-            add_code_cell_error_to_notebook(out_str)
+            # add_code_cell_error_to_notebook(out_str)
     text = '\n'.join(text).strip('\n')
     if error_occurred:
         history.append([None, f'❌Terminal output:\n```shell\n\n{text}\n```'])
