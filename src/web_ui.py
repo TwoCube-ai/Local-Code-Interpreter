@@ -7,11 +7,8 @@ import asyncio
 from functional import add_code_execution_result_to_bot_history
 import json
 
-# Assuming BotBackend and necessary imports are defined elsewhere
 bot_backend = BotBackend()
 history = []
-
-#add_code_execution_result_to_bot_history("content_to_display", "history", "unique_id")
 
 def execute_python_code(message):
     """
@@ -19,9 +16,8 @@ def execute_python_code(message):
     """
     print("running")
     try:
-        # Here you would send the message to the backend, e.g., using a function to execute code
         response = bot_backend.jupyter_kernel.execute_code(message)
-        output = response  # Assuming the backend returns a string output
+        output = response 
     except Exception as e:
         output = f"Error: {str(e)}"
     return response[1]
@@ -36,9 +32,8 @@ def run_gradio():
     with gr.Blocks(show_api=True) as app:
         chatbot = gr.Chatbot(placeholder="Type Python code here...")
         
-        chatbot.style(height=500)  # Optional, styles the chatbot window
+        chatbot.style(height=500) 
         msg = gr.Textbox(visible=False)
-        #add load button
         load = gr.Button("Load")
 
         app.queue()
