@@ -12,6 +12,8 @@ RUN apt-get clean
 RUN python -m pip install --no-cache -r /home/requirements_full.txt
 
 EXPOSE 7860
+ENV GRADIO_SERVER_NAME="0.0.0.0"
 #naviage to the src folder on the container
 WORKDIR /src
+# CMD ["cat", "web_ui.py"]
 CMD ["python", "web_ui.py"]
