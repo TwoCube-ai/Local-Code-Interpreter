@@ -7,7 +7,8 @@ api_url = "http://127.0.0.1:7860/run/predict/"
 #read chat_history.json
 # Data to send to the API
 data = {
-    "data": ["test"],
+    #plot a graph
+    "data": ["import matplotlib.pyplot as plt\nimport numpy as np\nx = np.linspace(0, 10, 100)\ny = np.sin(x)\nplt.plot(x, y)"],
     "fn_index": 0
 }
 headers = {

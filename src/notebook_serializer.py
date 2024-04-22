@@ -5,17 +5,17 @@ import os
 import argparse
 
 # main code
-parser = argparse.ArgumentParser()
-parser.add_argument("-n", "--notebook", help="Path to the output notebook", default=None, type=str)
-args = parser.parse_args()
-if args.notebook:
-    notebook_path = os.path.join(os.getcwd(), args.notebook)
-    base, ext = os.path.splitext(notebook_path)
-    if ext.lower() != '.ipynb':
-        notebook_path += '.ipynb'
-    if os.path.exists(notebook_path):
-        print(f'File at {notebook_path} already exists. Please choose a different file name.')
-        exit()
+# parser = argparse.ArgumentParser()
+# parser.add_argument("-n", "--notebook", help="Path to the output notebook", default=None, type=str)
+# args = parser.parse_args()
+# if args.notebook:
+#     notebook_path = os.path.join(os.getcwd(), args.notebook)
+#     base, ext = os.path.splitext(notebook_path)
+#     if ext.lower() != '.ipynb':
+#         notebook_path += '.ipynb'
+#     if os.path.exists(notebook_path):
+#         print(f'File at {notebook_path} already exists. Please choose a different file name.')
+#         exit()
 
 # Global variable for code cells
 nb = nbf.new_notebook()
@@ -58,9 +58,10 @@ def add_code_cell_error_to_notebook(error):
 
 
 def add_image_to_notebook(image, mime_type):
-    image_output = nbf.new_output(output_type='display_data', data={mime_type: image})
-    nb['cells'][-1]['outputs'].append(image_output)
-    write_to_notebook()
+    # image_output = nbf.new_output(output_type='display_data', data={mime_type: image})
+    # nb['cells'][-1]['outputs'].append(image_output)
+    # write_to_notebook()
+    pass
 
 
 def add_markdown_to_notebook(content, title=None):
